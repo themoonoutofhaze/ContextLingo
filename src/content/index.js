@@ -757,7 +757,7 @@ class InteractiveSubtitles {
     }
 
     let completeText = elements.map(el => el.textContent.trim()).filter(text => text).join(' ');
-    completeText = completeText.replace(/\s+/g, ' ').trim();
+    completeText = this.collapseImmediateDuplicatePhrases(this.sanitizeContextText(completeText));
 
     return completeText;
   }
@@ -792,11 +792,12 @@ class InteractiveSubtitles {
       }
     });
 
-    let completeText = textParts.join(' ').replace(/\s+/g, ' ').trim();
+    let completeText = textParts.join(' ');
 
     // Clean Amazon artifacts
     completeText = completeText.replace(/^\s*-\s*/, '');
     completeText = completeText.replace(/\s*-\s*$/, '');
+    completeText = this.collapseImmediateDuplicatePhrases(this.sanitizeContextText(completeText));
 
     // Add stability tracking for Amazon
     this.trackSubtitleStability(completeText);
@@ -1171,6 +1172,129 @@ class InteractiveSubtitles {
 
     const similarity = commonWords.length / totalWords;
     return similarity >= threshold;
+  }
+
+  sanitizeContextText(text) {
+    if (!text) return '';
+
+    // Remove subtitle wrappers/artifacts such as >< and similar angle-bracket glyphs.
+    return text
+      .replace(/[<>«»‹›⟨⟩]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  getComparableWords(text) {
+    if (!text) return [];
+    return this.sanitizeContextText(text)
+      .toLowerCase()
+      .replace(/[.,!?;:"'()[\]{}]/g, '')
+      .split(/\s+/)
+      .filter(Boolean);
+  }
+
+  collapseImmediateDuplicatePhrases(text) {
+    if (!text) return '';
+
+    const words = this.sanitizeContextText(text).split(/\s+/).filter(Boolean);
+    if (words.length < 4) return words.join(' ');
+
+    const comparable = words.map(w => w.toLowerCase().replace(/[.,!?;:"'()[\]{}]/g, ''));
+
+    for (let window = Math.min(12, Math.floor(words.length / 2)); window >= 2; window -= 1) {
+      let i = 0;
+      while (i + (2 * window) <= words.length) {
+        const first = comparable.slice(i, i + window).join(' ');
+        const second = comparable.slice(i + window, i + (2 * window)).join(' ');
+
+        if (first && first === second) {
+          words.splice(i + window, window);
+          comparable.splice(i + window, window);
+          continue;
+        }
+
+        i += 1;
+      }
+    }
+
+    return words.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  mergePartsWithOverlap(parts) {
+    const merged = [];
+
+    for (const rawPart of parts) {
+      const part = this.collapseImmediateDuplicatePhrases(this.sanitizeContextText(rawPart));
+      if (!part) continue;
+
+      if (merged.length === 0) {
+        merged.push(part);
+        continue;
+      }
+
+      const last = merged[merged.length - 1];
+      const lastWords = this.getComparableWords(last);
+      const partWords = this.getComparableWords(part);
+
+      if (partWords.length === 0) continue;
+
+      const lastComparable = lastWords.join(' ');
+      const partComparable = partWords.join(' ');
+
+      if (!partComparable) continue;
+
+      // Skip exact duplicates and short contained repeats.
+      if (partComparable === lastComparable || lastComparable.includes(partComparable)) {
+        continue;
+      }
+
+      let bestOverlap = 0;
+      const maxOverlap = Math.min(lastWords.length, partWords.length, 18);
+      for (let overlap = maxOverlap; overlap >= 2; overlap -= 1) {
+        const suffix = lastWords.slice(lastWords.length - overlap).join(' ');
+        const prefix = partWords.slice(0, overlap).join(' ');
+        if (suffix === prefix) {
+          bestOverlap = overlap;
+          break;
+        }
+      }
+
+      if (bestOverlap > 0) {
+        const partRawWords = part.split(/\s+/).filter(Boolean);
+        const toAppend = partRawWords.slice(bestOverlap).join(' ').trim();
+        if (toAppend) {
+          merged[merged.length - 1] = `${last} ${toAppend}`.replace(/\s+/g, ' ').trim();
+        }
+      } else {
+        merged.push(part);
+      }
+    }
+
+    return merged;
+  }
+
+  dedupeRepeatedSentences(text) {
+    if (!text) return '';
+
+    const parts = text.match(/[^.!?]+[.!?]*|[^.!?]+$/g) || [text];
+    const seen = new Set();
+    const unique = [];
+
+    for (const part of parts) {
+      const sentence = part.trim();
+      if (!sentence) continue;
+
+      const canonical = this.sanitizeContextText(sentence)
+        .toLowerCase()
+        .replace(/[.,!?;:"'()[\]{}]/g, '')
+        .trim();
+
+      if (!canonical || seen.has(canonical)) continue;
+      seen.add(canonical);
+      unique.push(sentence);
+    }
+
+    return this.collapseImmediateDuplicatePhrases(unique.join(' '));
   }
 
   // FIXED: Clear subtitle with longer delays
@@ -1587,10 +1711,16 @@ class InteractiveSubtitles {
       }
     }
 
-    const context = contextParts.join(' ').trim();
+    const sanitizedParts = contextParts
+      .map(part => this.sanitizeContextText(part))
+      .filter(Boolean);
+
+    const mergedParts = this.mergePartsWithOverlap(sanitizedParts);
+
+    const context = this.dedupeRepeatedSentences(mergedParts.join(' '));
     console.log('Generated rich context from', contextParts.length, 'unique parts:', context);
 
-    return context || this.currentSubtitle || 'No context available';
+    return context || this.sanitizeContextText(this.currentSubtitle) || 'No context available';
   }
 
   // Smart context extraction for articles/webpages (non-subtitle pages)
@@ -1714,6 +1844,9 @@ class InteractiveSubtitles {
   formatSentenceContext(combined, word, fallbackText = '') {
     const MAX_CONTEXT_LEN = 500;
 
+    combined = this.sanitizeContextText(combined);
+    fallbackText = this.sanitizeContextText(fallbackText);
+
     // Ensure the word actually appears in the context
     if (!combined.toLowerCase().includes(word.toLowerCase())) {
       combined = fallbackText || word;
@@ -1736,6 +1869,9 @@ class InteractiveSubtitles {
       }
       combined = contextSentences.join(' ');
     }
+
+    combined = this.dedupeRepeatedSentences(combined);
+    combined = this.collapseImmediateDuplicatePhrases(combined);
 
     // Trim to max length, preserving sentence boundaries
     if (combined.length > MAX_CONTEXT_LEN) {
