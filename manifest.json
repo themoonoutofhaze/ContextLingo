@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "ContextLingo",
+  "version": "1.0.0",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "permissions": [
+    "<all_urls>",
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "http://*/*",
+    "https://*/*",
+    "file:///*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": [
+        "src/content/index.js"
+      ],
+      "css": [
+        "src/content/styles.css"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "__MSG_actionDefaultTitle__"
+  },
+  "options_page": "src/options/index.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/options/index.html",
+        "src/standalone/index.html",
+        "src/standalone/index.js"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ]
+    }
+  ]
+}

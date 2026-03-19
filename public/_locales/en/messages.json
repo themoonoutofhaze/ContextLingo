@@ -1,0 +1,10 @@
+{
+  "extensionDescription": {
+    "message": "Look up any word in context with dictionary, AI explanations, and Anki integration",
+    "description": "The description of the extension shown in the Chrome Web Store."
+  },
+  "actionDefaultTitle": {
+    "message": "ContextLingo",
+    "description": "The tooltip text when hovering over the extension icon."
+  }
+}

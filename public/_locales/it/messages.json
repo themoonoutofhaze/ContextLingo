@@ -1,0 +1,10 @@
+{
+  "extensionDescription": {
+    "message": "Cerca qualsiasi parola nel contesto con dizionario, spiegazioni AI e integrazione Anki",
+    "description": "The description of the extension shown in the Chrome Web Store."
+  },
+  "actionDefaultTitle": {
+    "message": "ContextLingo",
+    "description": "The tooltip text when hovering over the extension icon."
+  }
+}

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f7fb;
+            --text: #152036;
+            --muted: #5d6b84;
+            --panel: #ffffff;
+            --panel-border: #d9e2f2;
+            --primary: #1f6fff;
+            --primary-soft: #e9f0ff;
+            --danger: #d9485f;
+            --danger-soft: #fff0f2;
+            --success: #118a58;
+            --success-soft: #ebfaf2;
+            --radius: 14px;
+            --radius-sm: 11px;
+        }
+
+        html,
+        body {
+            width: 430px;
+            min-width: 430px;
+        }
+
+        body {
+            color: var(--text);
+            background: radial-gradient(140% 100% at 100% 0%, #eef4ff 0%, var(--bg) 45%, #f7f9fc 100%);
+            font-family: 'Avenir Next', 'Avenir', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        body.popup-dark {
+            --bg: #0c1220;
+            --text: #e6ecfa;
+            --muted: #93a2bd;
+            --panel: #111a2d;
+            --panel-border: #263453;
+            --primary: #6ba0ff;
+            --primary-soft: #1a2847;
+            --danger: #ff778d;
+            --danger-soft: #3a1d26;
+            --success: #5ed9a0;
+            --success-soft: #123629;
+            background: radial-gradient(135% 100% at 100% 0%, #1a2a49 0%, var(--bg) 55%, #0a101d 100%);
+        }
+
+        .shell {
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .hero {
+            border-radius: var(--radius);
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(170deg, color-mix(in srgb, var(--panel) 86%, var(--primary-soft) 14%) 0%, var(--panel) 100%);
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 8px 24px rgba(20, 34, 64, 0.08);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 42%);
+            pointer-events: none;
+        }
+
+        .hero>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .product-kicker {
+            font-size: 11px;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .hero-title {
+            margin: 2px 0 4px;
+            font-size: 21px;
+            line-height: 1.14;
+            letter-spacing: 0.01em;
+        }
+
+        .hero-subtitle {
+            font-size: 13px;
+            line-height: 1.45;
+            color: var(--muted);
+        }
+
+        .controls {
+            display: grid;
+            gap: 9px;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            cursor: pointer;
+            background: var(--danger-soft);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .toggle-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(22, 36, 66, 0.14);
+        }
+
+        .toggle-btn:disabled {
+            cursor: not-allowed;
+            background: #8d9ab4;
+            box-shadow: none;
+            color: #f8fbff;
+            border-color: #8d9ab4;
+        }
+
+        .toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: color-mix(in srgb, var(--danger) 14%, transparent);
+            color: currentColor;
+            font-size: 14px;
+        }
+
+        .toggle-label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.2;
+            gap: 2px;
+        }
+
+        .toggle-label strong {
+            font-size: 13px;
+        }
+
+        .toggle-label span {
+            font-size: 11px;
+            color: color-mix(in srgb, var(--danger) 82%, #ffffff 18%);
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            width: 42px;
+            height: 24px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--danger) 78%, #ffffff 22%);
+            position: relative;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fdfdff;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(13, 22, 40, 0.28);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--success);
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .toggle-btn.active .toggle-switch {
+            background: color-mix(in srgb, var(--success) 80%, #ffffff 20%);
+        }
+
+        .toggle-btn.active .toggle-label span {
+            color: color-mix(in srgb, var(--success) 82%, #ffffff 18%);
+        }
+
+        .toggle-btn.active .toggle-switch::after {
+            transform: translateX(18px);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .exclude-btn,
+        .open-settings-btn {
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            background: var(--panel);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            min-height: 78px;
+        }
+
+        .exclude-btn:hover:not(:disabled),
+        .open-settings-btn:hover {
+            background: color-mix(in srgb, var(--panel) 74%, var(--primary-soft) 26%);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(22, 36, 66, 0.1);
+        }
+
+        .exclude-btn {
+            border-color: color-mix(in srgb, var(--danger) 45%, var(--panel-border) 55%);
+            background: color-mix(in srgb, var(--danger-soft) 82%, var(--panel) 18%);
+            color: var(--danger);
+        }
+
+        .exclude-btn:hover:not(:disabled) {
+            background: color-mix(in srgb, var(--danger-soft) 68%, var(--panel) 32%);
+        }
+
+        .exclude-btn .action-text span {
+            color: color-mix(in srgb, var(--danger) 85%, #ffffff 15%);
+        }
+
+        .exclude-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .open-settings-btn {
+            border-color: color-mix(in srgb, var(--primary) 38%, var(--panel-border) 62%);
+            background: color-mix(in srgb, var(--primary-soft) 78%, var(--panel) 22%);
+            color: var(--primary);
+        }
+
+        .theme-toggle-btn {
+            width: 100%;
+            border: 1px solid color-mix(in srgb, var(--primary) 38%, var(--panel-border) 62%);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            cursor: pointer;
+            background: color-mix(in srgb, var(--primary-soft) 78%, var(--panel) 22%);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+            background: color-mix(in srgb, var(--primary-soft) 58%, var(--panel) 42%);
+            box-shadow: 0 5px 14px rgba(22, 36, 66, 0.14);
+        }
+
+        .theme-toggle-btn .toggle-switch {
+            background: color-mix(in srgb, var(--primary) 62%, #ffffff 38%);
+        }
+
+        .theme-toggle-btn.active {
+            border-color: var(--panel-border);
+            background: color-mix(in srgb, var(--panel) 80%, #000000 20%);
+            color: var(--text);
+        }
+
+        .theme-toggle-btn.active .toggle-switch {
+            background: color-mix(in srgb, var(--success) 74%, #ffffff 26%);
+        }
+
+        .theme-toggle-btn.active .toggle-switch::after {
+            transform: translateX(18px);
+        }
+
+        .theme-toggle-btn.active .toggle-icon {
+            background: color-mix(in srgb, var(--primary) 22%, transparent);
+            color: var(--text);
+        }
+
+        .theme-toggle-btn .toggle-label span {
+            color: color-mix(in srgb, var(--primary) 84%, #ffffff 16%);
+        }
+
+        .theme-toggle-btn.active .toggle-label span {
+            color: var(--muted);
+        }
+
+        .action-icon {
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .action-text {
+            line-height: 1.2;
+            text-align: left;
+        }
+
+        .action-text strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .action-text span {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .footer {
+            padding: 0 2px 2px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .developer-credit {
+            margin-top: 4px;
+            color: #7a8394;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .developer-credit a {
+            color: #7a8394;
+            text-decoration: none;
+        }
+
+        .developer-credit a:hover {
+            text-decoration: underline;
+        }
+
+        .developer-credit .heart {
+            color: #dc2626;
+        }
+
+        @media (max-width: 460px) {
+            html,
+            body {
+                width: 100%;
+                min-width: 320px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <section class="hero">
+            <p class="product-kicker">Read. Tap. Understand.</p>
+            <h1 class="hero-title">ContextLingo</h1>
+            <p class="hero-subtitle">Dictionary and AI notes for subtitles, websites, and PDFs with quick Anki export.</p>
+
+            <div class="controls">
+                <button id="toggleBtn" class="toggle-btn active" aria-pressed="true">
+                    <span class="toggle-left">
+                        <span class="toggle-icon" aria-hidden="true">⏻</span>
+                        <span class="toggle-label">
+                            <strong id="toggleTitle">Extension Enabled</strong>
+                            <span id="toggleSubtitle">Global switch for all websites</span>
+                        </span>
+                    </span>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                </button>
+
+                <div class="action-grid">
+                    <button id="excludeSiteBtn" class="exclude-btn">
+                        <span class="action-icon" aria-hidden="true">⛔</span>
+                        <span class="action-text">
+                            <strong id="excludeTitle">Exclude Website</strong>
+                            <span id="excludeSubtitle">Add current site to blocked list</span>
+                        </span>
+                    </button>
+
+                    <button id="openSettingsBtn" class="open-settings-btn">
+                        <span class="action-icon" aria-hidden="true">⚙️</span>
+                        <span class="action-text">
+                            <strong>Open Settings</strong>
+                            <span>Manage API, Anki, and site rules</span>
+                        </span>
+                    </button>
+                </div>
+
+                <button id="darkModeBtn" class="theme-toggle-btn" aria-pressed="false">
+                    <span class="toggle-left">
+                        <span class="toggle-icon" aria-hidden="true">🌙</span>
+                        <span class="toggle-label">
+                            <strong id="darkModeTitle">Dark Mode Off</strong>
+                            <span id="darkModeSubtitle">Use light visual theme</span>
+                        </span>
+                    </span>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                </button>
+            </div>
+        </section>
+
+        <div class="footer">
+            <div>ContextLingo v1</div>
+            <div class="developer-credit">Build with <span class="heart">&#10084;</span> For Language Leanrners<br><a href="https://mehdinickzamir.com" target="_blank" rel="noopener noreferrer">By Mehdi Nickzamir</a></div>
+        </div>
+    </div>
+
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>
