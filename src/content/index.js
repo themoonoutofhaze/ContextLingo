@@ -18,6 +18,9 @@ class InteractiveSubtitles {
     this.recentSeekTimestamp = 0;
     this.subtitleClearTimeout = null;
     this.staticContentTracker = new Map();
+    this.subtitleStabilityTracker = new Map();
+    this.selectedWordElements = new Set();
+    this.isControlHeld = false;
     this.staticContentThreshold = 3000; // Increased threshold
     this.lastNonStaticSubtitle = '';
     this.bannedStaticContent = new Set();

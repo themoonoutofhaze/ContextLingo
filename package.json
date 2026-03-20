@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node fix-sw-loader.js",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "package:webstore": "rm -rf dist ContextLingo-webstore-upload.zip && npm run build && cd dist && zip -r -X ../ContextLingo-webstore-upload.zip . -x '*.DS_Store' '__MACOSX/*'"
   },
   "type": "module",
   "keywords": [],
